@@ -373,67 +373,34 @@ const nearbyDesc = document.getElementById('nearby-desc');
 let gpsInterval = null;
 let lastAnnouncedSpotName = null; // TTS 중복 재생 방지용
 let currentHeading = 0; // 스마트폰 정면 나침반 방위각 (0 ~ 360도)
-
-// 3D 공간 방위각 계산 함수 (alpha, beta, gamma 기반)
-function getCompassHeading(alpha, beta, gamma) {
-  // Convert degrees to radians
-  const alphaRad = alpha * (Math.PI / 180);
-  const betaRad = beta * (Math.PI / 180);
-  const gammaRad = gamma * (Math.PI / 180);
-
-  // Calculate equation components
-  const cA = Math.cos(alphaRad);
-  const sA = Math.sin(alphaRad);
-  const cB = Math.cos(betaRad);
-  const sB = Math.sin(betaRad);
-  const cG = Math.cos(gammaRad);
-  const sG = Math.sin(gammaRad);
-
-  // Calculate A, B, C rotation components
-  const rA = - cA * sG - sA * sB * cG;
-  const rB = - sA * sG + cA * sB * cG;
-  const rC = - cB * cG;
-
-  // Calculate compass heading
-  let compassHeading = Math.atan(rA / rB);
-
-  // Convert from half unit circle to whole unit circle
-  if (rB < 0) {
-    compassHeading += Math.PI;
-  } else if (rA < 0) {
-    compassHeading += 2 * Math.PI;
-  }
-
-  // Convert radians to degrees
-  compassHeading *= 180 / Math.PI;
-
-  return compassHeading;
-}
+let headingOffset = parseInt(localStorage.getItem('heading_offset') || '0', 10);
+let hasAbsoluteOrientation = false;
 
 // 지자기 센서(DeviceOrientation) 수신 및 저주파 필터링(Smoothing)
 function handleOrientation(event) {
+  if (event.type === 'deviceorientationabsolute') {
+    hasAbsoluteOrientation = true;
+  } else if (event.type === 'deviceorientation' && hasAbsoluteOrientation) {
+    // 안드로이드 크롬 등에서 절대 방위각을 지원하는 경우, 중복 호출되어 널뛰는 것을 방지
+    return;
+  }
+
   let heading = null;
   if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
     // iOS Safari
     heading = event.webkitCompassHeading;
-  } else if (event.alpha !== null && event.alpha !== undefined && event.beta !== null && event.gamma !== null) {
-    // Android / Standard (3D Compass Heading)
-    heading = getCompassHeading(event.alpha, event.beta, event.gamma);
-    
-    // 화면 방향(가로/세로 모드)에 따른 각도 보정
-    let screenOrientation = window.screen && window.screen.orientation ? window.screen.orientation.angle : window.orientation;
-    if (screenOrientation === undefined) screenOrientation = 0;
-    
-    heading = (heading + screenOrientation + 360) % 360;
   } else if (event.alpha !== null && event.alpha !== undefined) {
-    // 2D Fallback
+    // Android / Standard (2D Fallback)
     heading = (360 - event.alpha) % 360;
   }
 
   if (heading !== null) {
-    // 저주파 필터로 나침반 떨림 보정 (Low-pass Filter)
+    // 사용자 영점 조절 캘리브레이션 오프셋 적용
+    heading = (heading + headingOffset + 360) % 360;
+
+    // 저주파 필터로 나침반 떨림 보정 (Low-pass Filter) - 흔들림을 더 강하게 잡기 위해 가중치 하향
     const diff = (heading - currentHeading + 540) % 360 - 180;
-    currentHeading = (currentHeading + diff * 0.2 + 360) % 360;
+    currentHeading = (currentHeading + diff * 0.1 + 360) % 360;
     
     // 지도 위 내 위치 마커 방위각 시야각(Heading Cone) 및 화살표 실시간 회전
     updateMarkerHeading();
@@ -459,7 +426,7 @@ function toggleTestRotation() {
   if (btn) {
     if (isTestRotating) {
       btn.classList.add('active');
-      btn.innerText = '⏹️ 테스트 중지';
+      btn.innerText = '⏹️ 중지';
       runTestRotationLoop();
     } else {
       btn.classList.remove('active');
@@ -480,15 +447,33 @@ function runTestRotationLoop() {
   testAnimFrame = requestAnimationFrame(runTestRotationLoop);
 }
 
+function calibrateHeading() {
+  headingOffset = (headingOffset + 90) % 360;
+  localStorage.setItem('heading_offset', headingOffset.toString());
+  const btn = document.getElementById('calibrate-btn');
+  if (btn) {
+    btn.innerText = `🧭 교정 (+${headingOffset}°)`;
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 300);
+  }
+}
+
 if (window.DeviceOrientationEvent) {
   window.addEventListener('deviceorientationabsolute', handleOrientation, true);
   window.addEventListener('deviceorientation', handleOrientation, true);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('test-rotation-btn');
-  if (btn) {
-    btn.addEventListener('click', toggleTestRotation);
+  const testBtn = document.getElementById('test-rotation-btn');
+  if (testBtn) {
+    testBtn.addEventListener('click', toggleTestRotation);
+  }
+
+  const calBtn = document.getElementById('calibrate-btn');
+  if (calBtn) {
+    // 초기 로딩 시 텍스트 맞춤
+    calBtn.innerText = `🧭 회전 교정 (+${headingOffset}°)`;
+    calBtn.addEventListener('click', calibrateHeading);
   }
 });
 
