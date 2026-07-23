@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // GitHub 저장소 이름과 동일하게 base 경로를 설정해야 GitHub Pages에서 CSS/JS를 정상적으로 불러옵니다.
-  base: '/tinytour/'
+  // 상대 경로 base: './'로 설정하여 GitHub Pages 서브디렉토리 404 문제를 완벽히 해결합니다.
+  base: './'
 })
