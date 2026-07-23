@@ -386,6 +386,9 @@ function handleOrientation(event) {
   }
 
   if (heading !== null) {
+    // 스마트폰 뒷면 카메라(사용자 정면) 방향을 기준으로 일치시키기 위한 180도 위상 보정
+    heading = (heading + 180) % 360;
+
     // 저주파 필터로 나침반 떨림 보정 (Low-pass Filter)
     const diff = (heading - currentHeading + 540) % 360 - 180;
     currentHeading = (currentHeading + diff * 0.2 + 360) % 360;
