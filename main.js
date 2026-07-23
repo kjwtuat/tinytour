@@ -179,64 +179,54 @@ class SpatialAudioGuide {
       const now = this.audioCtx.currentTime;
       const absAngle = Math.abs(this.currentRelativeAngle);
 
-      if (absAngle <= 45) {
-        // [정면 조준 영역 (0° ~ 45°)] 맑고 청량하게 튕기는 3음 아르페지오 유리 벨 "또로롱-! 🎶" (1800Hz ➔ 2400Hz ➔ 2700Hz, triangle)
-        const freqs = [1800, 2400, 2700];
-        freqs.forEach((freq, idx) => {
-          const osc = this.audioCtx.createOscillator();
-          const gain = this.audioCtx.createGain();
-          const startTime = now + idx * 0.045;
-
-          osc.type = 'triangle'; // 하모닉스가 맑고 화사한 삼각파
-          osc.frequency.setValueAtTime(freq, startTime);
-
-          gain.gain.setValueAtTime(0.001, startTime);
-          gain.gain.exponentialRampToValueAtTime(0.4, startTime + 0.008);
-          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.16);
-
-          osc.connect(gain);
-          gain.connect(this.audioCtx.destination);
-
-          osc.start(startTime);
-          osc.stop(startTime + 0.17);
-        });
-      } else if (absAngle <= 135) {
-        // [측면 영역 (45° ~ 135°)] 청량한 미니 톡- 톤 (1500Hz, triangle, 볼륨 35% 감쇄)
+      if (absAngle <= 30) {
+        // [정면 구역 (0° ~ 30°)] 마이크 활성화음 (600Hz ➔ 1200Hz, 볼륨 50%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
-        const angleGain = 1.0 - ((absAngle - 45) / 90) * 0.65;
-        const maxGain = Math.max(0.01, 0.35 * angleGain);
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(1500, now);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(maxGain, now + 0.008);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-
-        osc.connect(gain);
-        gain.connect(this.audioCtx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.13);
-      } else {
-        // [후방/뒤쪽 영역 (135° ~ 180°)] 어두운 하향 저음 톤 "뾴..." (500Hz ➔ 350Hz, 볼륨 대폭 상향)
-        const osc = this.audioCtx.createOscillator();
-        const gain = this.audioCtx.createGain();
-
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, now);
-        osc.frequency.exponentialRampToValueAtTime(350, now + 0.15);
-
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+        
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.5, now + 0.02); // 볼륨을 50%로 대폭 상향
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-
+        gain.gain.linearRampToValueAtTime(0.5, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
-
         osc.start(now);
-        osc.stop(now + 0.19);
+        osc.stop(now + 0.2);
+      } else if (absAngle < 90) {
+        // [측면 구역 (30° ~ 90°)] 제미나이 대기음 (1200Hz ➔ 1500Hz, 볼륨 50%)
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(1500, now + 0.1);
+        
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.5, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } else {
+        // [후방 구역 (90° ~ 180°)] 마이크 비활성화음 (1200Hz ➔ 600Hz, 볼륨 50%)
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+        
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.5, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
       }
     } catch (e) {
       console.error("Beacon sound play error:", e);
