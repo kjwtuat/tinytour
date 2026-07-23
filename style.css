@@ -530,72 +530,107 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Leaflet 커스텀 마커 & 방위각 시야각 스타일 */
-.user-location-marker {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* 테스트 회전 버튼 */
+.test-rotation-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
-/* 마커 정중앙 중심점 기준 360도 궤도 회전 레이어 */
+.test-rotation-btn.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #60a5fa;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+}
+
+/* Leaflet 커스텀 마커 & 100% 중심 궤도 회전 정밀 정렬 */
+.user-location-marker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+}
+
+/* 마커 정확히 (22px, 22px) 중심으로 360도 회전하는 레이어 */
 .heading-orbit-layer {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 44px;
+  height: 44px;
+  transform-origin: 22px 22px;
   pointer-events: none;
-  transform-origin: 50% 50%;
-  transition: transform 0.15s ease-out;
   z-index: 2;
 }
 
-/* 스마트폰 전방 부채꼴 시야각 (Heading Cone) */
+/* 부채꼴 시야각 빛 (중심 기준 상단 12시 궤도) */
 .heading-cone {
   position: absolute;
-  top: -22px;
-  width: 50px;
-  height: 50px;
-  background: conic-gradient(from 150deg at 50% 100%, rgba(59, 130, 246, 0.55) 0deg, rgba(59, 130, 246, 0) 60deg);
+  top: -24px;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
+  background: conic-gradient(from 150deg at 50% 100%, rgba(59, 130, 246, 0.6) 0deg, rgba(59, 130, 246, 0) 60deg);
   border-radius: 50% 50% 0 0;
 }
 
 /* 원 둘레 밖 궤도를 회전하는 방향 화살표 (Pointer Arrow) */
 .heading-arrow {
   position: absolute;
-  top: -10px;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 9px solid #3b82f6;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 11px solid #3b82f6;
   filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.9));
 }
 
-/* 현재 위치 중심 점 */
+/* 정중앙에 1픽셀 오차 없이 딱 얹히는 내 위치 파란색 원 점 */
 .marker-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 16px;
   height: 16px;
+  margin-top: -8px;
+  margin-left: -8px;
   background: #3b82f6;
   border: 2.5px solid #ffffff;
   border-radius: 50%;
-  position: absolute;
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
   z-index: 3;
 }
 
+/* 정중앙에 위치하는 파동 애니메이션 원 */
 .marker-pulse {
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  margin-left: -18px;
   background: rgba(59, 130, 246, 0.35);
   border-radius: 50%;
-  position: absolute;
   animation: marker-pulse-anim 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
   z-index: 1;
 }

@@ -398,17 +398,57 @@ function handleOrientation(event) {
   }
 }
 
+let isTestRotating = false;
+let testAngle = 0;
+let testAnimFrame = null;
+
 function updateMarkerHeading() {
+  if (isTestRotating) return; // 테스트 회전 중일 때는 나침반 센서 수신 임시 일시정지
   const orbitLayer = document.querySelector('.heading-orbit-layer');
   if (orbitLayer) {
     orbitLayer.style.transform = `rotate(${currentHeading}deg)`;
   }
 }
 
+function toggleTestRotation() {
+  const btn = document.getElementById('test-rotation-btn');
+  isTestRotating = !isTestRotating;
+  
+  if (btn) {
+    if (isTestRotating) {
+      btn.classList.add('active');
+      btn.innerText = '⏹️ 테스트 중지';
+      runTestRotationLoop();
+    } else {
+      btn.classList.remove('active');
+      btn.innerText = '🧭 회전 테스트';
+      if (testAnimFrame) cancelAnimationFrame(testAnimFrame);
+      updateMarkerHeading();
+    }
+  }
+}
+
+function runTestRotationLoop() {
+  if (!isTestRotating) return;
+  testAngle = (testAngle + 2) % 360;
+  const orbitLayer = document.querySelector('.heading-orbit-layer');
+  if (orbitLayer) {
+    orbitLayer.style.transform = `rotate(${testAngle}deg)`;
+  }
+  testAnimFrame = requestAnimationFrame(runTestRotationLoop);
+}
+
 if (window.DeviceOrientationEvent) {
   window.addEventListener('deviceorientationabsolute', handleOrientation, true);
   window.addEventListener('deviceorientation', handleOrientation, true);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('test-rotation-btn');
+  if (btn) {
+    btn.addEventListener('click', toggleTestRotation);
+  }
+});
 
 // 한글 받침 여부를 확인하여 조사('이/가', '은/는', '을/를')를 붙여 반환하는 함수
 function getJosa(word, josa1, josa2) {
@@ -455,12 +495,12 @@ function updateMapLocation(lat, lon, accuracy) {
 
     L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(leafletMap);
 
-    // 커스텀 펄스 파란색 위치 마커 & 마커 정중앙 360도 궤도 회전 시야각(Orbit Layer) 아이콘 생성
+    // 커스텀 펄스 파란색 위치 마커 & 마커 정중앙 360도 궤도 회전 시야각(Orbit Layer) 아이콘 생성 (44px, 22px 앵커 정밀 고정)
     const customIcon = L.divIcon({
       className: 'user-location-marker',
       html: '<div class="heading-orbit-layer"><div class="heading-cone"></div><div class="heading-arrow"></div></div><div class="marker-pin"></div><div class="marker-pulse"></div>',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
     });
 
     userMarker = L.marker([lat, lon], { icon: customIcon }).addTo(leafletMap);
