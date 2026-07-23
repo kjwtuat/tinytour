@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TourAgent Voice Assistant</title>
+    <link rel="stylesheet" href="/style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <h1>모두의 투어</h1>
+        <p>음성으로 질문해 보세요!</p>
+      </div>
+
+      <div class="api-key-container">
+        <input type="password" id="api-key-input" placeholder="Gemini API Key를 입력하세요..." />
+        <button id="save-key-btn">저장</button>
+      </div>
+      <div id="gps-container" class="gps-container">
+        <div class="gps-info-main">📍 보정: <span id="gps-lat">가져오는 중...</span> / <span id="gps-lon">가져오는 중...</span></div>
+        <div class="gps-info-sub">
+          (원본: <span id="gps-raw-lat">-</span>, <span id="gps-raw-lon">-</span> | 오차: ±<span id="gps-acc">-</span>m)
+        </div>
+      </div>
+      
+      <div id="nearby-location" class="nearby-container" style="display: none;">
+        <div class="nearby-icon">📍</div>
+        <div class="nearby-info">
+          <h3 id="nearby-name"></h3>
+          <p id="nearby-desc"></p>
+        </div>
+      </div>
+
+      <div class="container">
+        <div id="transcript-box" class="glass-panel">
+          <p id="transcript-text" class="placeholder">마이크를 누르고 말씀해 주세요...</p>
+        </div>
+
+        <div id="response-box" class="glass-panel response-panel" style="display: none;">
+          <p id="response-text"></p>
+        </div>
+
+        <button id="mic-btn" class="mic-button" aria-label="Microphone">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="mic-icon">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          <div class="pulse-ring"></div>
+        </button>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
