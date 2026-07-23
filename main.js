@@ -160,11 +160,11 @@ class SpatialAudioGuide {
       this.playBeaconSound();
 
       // 거리(Distance)에 따른 다음 핑 간격 계산
-      let nextInterval = 2000; // 30m 이상: 2초
+      let nextInterval = 1500; // 30m 이상: 1.5초
       if (this.currentDistance <= 10.0) {
-        nextInterval = 600; // 10m 이내: 0.6초 (빠름)
+        nextInterval = 500; // 10m 이내: 0.5초 (빠름)
       } else if (this.currentDistance <= 30.0) {
-        nextInterval = 1200; // 10~30m: 1.2초
+        nextInterval = 1000; // 10~30m: 1.0초
       }
 
       this.scheduleNextPing(nextInterval);
