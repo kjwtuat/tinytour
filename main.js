@@ -171,7 +171,7 @@ class SpatialAudioGuide {
     }, delayMs);
   }
 
-  // 맑은 아날로그 핑/종소리 합성 (Web Audio Oscillator + StereoPanner + Directional Gain)
+  // 맑은 아날로그 핑/종소리 합성 (Web Audio Oscillator + StereoPanner + Directional Pitch & Gain)
   playBeaconSound() {
     if (!this.audioCtx) return;
 
@@ -180,26 +180,35 @@ class SpatialAudioGuide {
       const osc = this.audioCtx.createOscillator();
       const gainNode = this.audioCtx.createGain();
 
+      const absAngle = Math.abs(this.currentRelativeAngle);
+
       // 1. 상대 각도(relativeAngle: -180 ~ +180)를 Stereo Panning 값(-1.0 ~ +1.0)으로 변환 (이어폰 3D 공간감)
       const rad = (this.currentRelativeAngle * Math.PI) / 180;
       const panValue = Math.sin(rad);
 
-      // 2. 오디오 조준경 효과: 정면 각도 조준에 따른 마스터 볼륨 계수(angleGain) 계산 (스피커 & 이어폰 공통)
-      // |angle| <= 15도: 정면 정확 조준 100% (1.0)
-      // |angle| > 15도: 각도가 벗어날수록 소리가 0.15~0.1 수준으로 확 줄어듦
-      const absAngle = Math.abs(this.currentRelativeAngle);
+      // 2. 전후방 모호성(Front-Back Ambiguity) 해결: 각도별 음정(Pitch), 음색 디케이, 마스터 볼륨 계수(angleGain) 동적 산출
+      let freq = 1046.5; // 기본 정면: 맑고 드높은 C6 (1046.5Hz)
       let angleGain = 1.0;
-      if (absAngle <= 15) {
-        angleGain = 1.0; // 정면 정확 조준 시 최댓값
-      } else if (absAngle <= 90) {
-        // 15도~90도 구간: 1.0에서 0.15로 부드럽게 감쇄
-        angleGain = 1.0 - ((absAngle - 15) / 75) * 0.85;
+      let decayDuration = 0.25;
+
+      if (absAngle <= 45) {
+        // [정면 영역 (0° ~ 45°)] 맑고 또렷한 고음 C6 (1046.5Hz) "띵-!" (볼륨 100%)
+        freq = 1046.5;
+        angleGain = 1.0;
+        decayDuration = 0.25;
+      } else if (absAngle <= 135) {
+        // [측면 영역 (45° ~ 135°)] 중간 음정 G5 (783.99Hz) (볼륨 0.5 ~ 0.25 감쇄)
+        freq = 783.99;
+        angleGain = 1.0 - ((absAngle - 45) / 90) * 0.75;
+        decayDuration = 0.20;
       } else {
-        // 90도 초과 (뒤쪽/측면): 0.1 (10% 볼륨)
-        angleGain = 0.1;
+        // [후방/뒤쪽 영역 (135° ~ 180°)] 1옥타브 낮고 묵직하며 먹먹한 저음 C5 (523.25Hz) "뚱..." (볼륨 10% 감쇄)
+        freq = 523.25;
+        angleGain = 0.1; // 10% 약한 볼륨
+        decayDuration = 0.15; // 둔탁하고 짧은 잔향
       }
 
-      // 기본 피크 볼륨 (0.4)에 방향 계수를 적용하여 최고 피크 볼륨 산출
+      // 기본 피크 볼륨 (0.4)에 방향 계수 적용
       const maxPeakGain = Math.max(0.01, 0.4 * angleGain);
 
       // StereoPannerNode 지원 여부 확인 후 적용
@@ -209,14 +218,14 @@ class SpatialAudioGuide {
         pannerNode.pan.setValueAtTime(panValue, now);
       }
 
-      // 음정 설정 (맑은 C6 = 1046.5Hz 아날로그 벨 소리)
+      // 음정 설정 (정면: C6 1046Hz ➔ 후방: C5 523Hz)
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(1046.5, now);
+      osc.frequency.setValueAtTime(freq, now);
 
-      // 엔벨로프 (조준 각도에 따른 최고 피크 볼륨 적용, 잔향 0.25초)
+      // 엔벨로프 (조준 각도에 따른 최고 피크 볼륨 적용, 잔향 decayDuration)
       gainNode.gain.setValueAtTime(0.001, now);
       gainNode.gain.exponentialRampToValueAtTime(maxPeakGain, now + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + decayDuration);
 
       // 노드 연결
       if (pannerNode) {
@@ -229,7 +238,7 @@ class SpatialAudioGuide {
       }
 
       osc.start(now);
-      osc.stop(now + 0.26);
+      osc.stop(now + decayDuration + 0.01);
     } catch (e) {
       console.error("Beacon sound play error:", e);
     }
