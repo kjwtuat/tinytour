@@ -137,8 +137,8 @@ class SpatialAudioGuide {
 
     console.log(`[Spatial Guide] 거리: ${this.currentDistance.toFixed(1)}m, 상대 각도: ${relativeAngle.toFixed(1)}°`);
 
-    // 4. 3m 이내 도달 시 도착 처리
-    if (this.currentDistance <= 3.0) {
+    // 4. 5m 이내 도달 시 도착 처리
+    if (this.currentDistance <= 5.0) {
       this.playArrivalChime();
       const spotName = this.targetSpot.name.replace(/\([^)]*\)/g, '').trim();
       const arrivalMsg = `목적지인 ${getJosa(spotName, '에', '에')} 도착했습니다.`;
