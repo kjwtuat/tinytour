@@ -229,7 +229,7 @@ class SpatialAudioGuide {
         osc.frequency.exponentialRampToValueAtTime(350, now + 0.15);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02); // 볼륨을 0.05에서 0.25로 상향
+        gain.gain.exponentialRampToValueAtTime(0.5, now + 0.02); // 볼륨을 50%로 대폭 상향
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
 
         osc.connect(gain);
