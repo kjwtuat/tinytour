@@ -399,13 +399,9 @@ function handleOrientation(event) {
 }
 
 function updateMarkerHeading() {
-  const coneEl = document.querySelector('.heading-cone');
-  const arrowEl = document.querySelector('.heading-arrow');
-  if (coneEl) {
-    coneEl.style.transform = `rotate(${currentHeading}deg)`;
-  }
-  if (arrowEl) {
-    arrowEl.style.transform = `translateX(-50%) rotate(${currentHeading}deg)`;
+  const orbitLayer = document.querySelector('.heading-orbit-layer');
+  if (orbitLayer) {
+    orbitLayer.style.transform = `rotate(${currentHeading}deg)`;
   }
 }
 
@@ -459,10 +455,10 @@ function updateMapLocation(lat, lon, accuracy) {
 
     L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(leafletMap);
 
-    // 커스텀 펄스 파란색 위치 마커 & 지자기 방위각 시야각(Heading Cone) 아이콘 생성
+    // 커스텀 펄스 파란색 위치 마커 & 마커 정중앙 360도 궤도 회전 시야각(Orbit Layer) 아이콘 생성
     const customIcon = L.divIcon({
       className: 'user-location-marker',
-      html: '<div class="heading-cone"></div><div class="marker-pin"><div class="heading-arrow"></div></div><div class="marker-pulse"></div>',
+      html: '<div class="heading-orbit-layer"><div class="heading-cone"></div><div class="heading-arrow"></div></div><div class="marker-pin"></div><div class="marker-pulse"></div>',
       iconSize: [40, 40],
       iconAnchor: [20, 20]
     });

@@ -540,20 +540,42 @@ body {
   justify-content: center;
 }
 
+/* 마커 정중앙 중심점 기준 360도 궤도 회전 레이어 */
+.heading-orbit-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  transition: transform 0.15s ease-out;
+  z-index: 2;
+}
+
 /* 스마트폰 전방 부채꼴 시야각 (Heading Cone) */
 .heading-cone {
   position: absolute;
-  top: -24px;
-  left: 50%;
+  top: -22px;
   width: 50px;
   height: 50px;
-  margin-left: -25px;
   background: conic-gradient(from 150deg at 50% 100%, rgba(59, 130, 246, 0.55) 0deg, rgba(59, 130, 246, 0) 60deg);
   border-radius: 50% 50% 0 0;
-  pointer-events: none;
-  transform-origin: 50% 100%;
-  transition: transform 0.15s ease-out;
-  z-index: 1;
+}
+
+/* 원 둘레 밖 궤도를 회전하는 방향 화살표 (Pointer Arrow) */
+.heading-arrow {
+  position: absolute;
+  top: -10px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid #3b82f6;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.9));
 }
 
 /* 현재 위치 중심 점 */
@@ -568,20 +590,6 @@ body {
   z-index: 3;
 }
 
-/* 방위각 방향 화살표 (Pointer Arrow) */
-.heading-arrow {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 7px solid #ffffff;
-  z-index: 4;
-}
-
 .marker-pulse {
   width: 32px;
   height: 32px;
@@ -589,7 +597,7 @@ body {
   border-radius: 50%;
   position: absolute;
   animation: marker-pulse-anim 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-  z-index: 2;
+  z-index: 1;
 }
 
 @keyframes marker-pulse-anim {
