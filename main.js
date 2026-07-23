@@ -171,7 +171,7 @@ class SpatialAudioGuide {
     }, delayMs);
   }
 
-  // 맑은 아날로그 핑/종소리 합성 (Web Audio Oscillator + StereoPanner)
+  // 맑은 아날로그 핑/종소리 합성 (Web Audio Oscillator + StereoPanner + Directional Gain)
   playBeaconSound() {
     if (!this.audioCtx) return;
 
@@ -180,8 +180,27 @@ class SpatialAudioGuide {
       const osc = this.audioCtx.createOscillator();
       const gainNode = this.audioCtx.createGain();
 
-      // 상대 각도(relativeAngle: -180 ~ +180)를 Panning 값(-1.0 ~ +1.0)으로 변환
-      const panValue = Math.sin((this.currentRelativeAngle * Math.PI) / 180);
+      // 1. 상대 각도(relativeAngle: -180 ~ +180)를 Stereo Panning 값(-1.0 ~ +1.0)으로 변환 (이어폰 3D 공간감)
+      const rad = (this.currentRelativeAngle * Math.PI) / 180;
+      const panValue = Math.sin(rad);
+
+      // 2. 오디오 조준경 효과: 정면 각도 조준에 따른 마스터 볼륨 계수(angleGain) 계산 (스피커 & 이어폰 공통)
+      // |angle| <= 15도: 정면 정확 조준 100% (1.0)
+      // |angle| > 15도: 각도가 벗어날수록 소리가 0.15~0.1 수준으로 확 줄어듦
+      const absAngle = Math.abs(this.currentRelativeAngle);
+      let angleGain = 1.0;
+      if (absAngle <= 15) {
+        angleGain = 1.0; // 정면 정확 조준 시 최댓값
+      } else if (absAngle <= 90) {
+        // 15도~90도 구간: 1.0에서 0.15로 부드럽게 감쇄
+        angleGain = 1.0 - ((absAngle - 15) / 75) * 0.85;
+      } else {
+        // 90도 초과 (뒤쪽/측면): 0.1 (10% 볼륨)
+        angleGain = 0.1;
+      }
+
+      // 기본 피크 볼륨 (0.4)에 방향 계수를 적용하여 최고 피크 볼륨 산출
+      const maxPeakGain = Math.max(0.01, 0.4 * angleGain);
 
       // StereoPannerNode 지원 여부 확인 후 적용
       let pannerNode = null;
@@ -194,9 +213,9 @@ class SpatialAudioGuide {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1046.5, now);
 
-      // 엔벨로프 (짧고 맑은 종소리 잔향 0.25초)
+      // 엔벨로프 (조준 각도에 따른 최고 피크 볼륨 적용, 잔향 0.25초)
       gainNode.gain.setValueAtTime(0.001, now);
-      gainNode.gain.exponentialRampToValueAtTime(0.3, now + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(maxPeakGain, now + 0.02);
       gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
 
       // 노드 연결
