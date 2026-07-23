@@ -171,74 +171,79 @@ class SpatialAudioGuide {
     }, delayMs);
   }
 
-  // 맑은 아날로그 핑/종소리 합성 (Web Audio Oscillator + StereoPanner + Directional Pitch & Gain)
+  // 맑은 아날로그 핑/종소리 합성 (스마트폰 스피커 전용: High-Visibility Dual-Tone Chime)
   playBeaconSound() {
     if (!this.audioCtx) return;
 
     try {
       const now = this.audioCtx.currentTime;
-      const osc = this.audioCtx.createOscillator();
-      const gainNode = this.audioCtx.createGain();
-
       const absAngle = Math.abs(this.currentRelativeAngle);
 
-      // 1. 상대 각도(relativeAngle: -180 ~ +180)를 Stereo Panning 값(-1.0 ~ +1.0)으로 변환 (이어폰 3D 공간감)
-      const rad = (this.currentRelativeAngle * Math.PI) / 180;
-      const panValue = Math.sin(rad);
-
-      // 2. 전후방 모호성(Front-Back Ambiguity) 해결: 각도별 음정(Pitch), 음색 디케이, 마스터 볼륨 계수(angleGain) 동적 산출
-      let freq = 1046.5; // 기본 정면: 맑고 드높은 C6 (1046.5Hz)
-      let angleGain = 1.0;
-      let decayDuration = 0.25;
-
       if (absAngle <= 45) {
-        // [정면 영역 (0° ~ 45°)] 맑고 또렷한 고음 C6 (1046.5Hz) "띵-!" (볼륨 100%)
-        freq = 1046.5;
-        angleGain = 1.0;
-        decayDuration = 0.25;
+        // [정면 조준 영역 (0° ~ 45°)] 화사하고 경쾌하게 솟구치는 투톤 차임 "뾰롱-!" (1200Hz ➔ 1600Hz, 볼륨 100%)
+        const osc1 = this.audioCtx.createOscillator();
+        const osc2 = this.audioCtx.createOscillator();
+        const gain1 = this.audioCtx.createGain();
+        const gain2 = this.audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(1200, now);
+        gain1.gain.setValueAtTime(0.001, now);
+        gain1.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1600, now + 0.06);
+        gain2.gain.setValueAtTime(0.001, now + 0.06);
+        gain2.gain.exponentialRampToValueAtTime(0.4, now + 0.07);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+        osc1.connect(gain1);
+        gain1.connect(this.audioCtx.destination);
+        osc2.connect(gain2);
+        gain2.connect(this.audioCtx.destination);
+
+        osc1.start(now);
+        osc1.stop(now + 0.13);
+        osc2.start(now + 0.06);
+        osc2.stop(now + 0.23);
       } else if (absAngle <= 135) {
-        // [측면 영역 (45° ~ 135°)] 중간 음정 G5 (783.99Hz) (볼륨 0.5 ~ 0.25 감쇄)
-        freq = 783.99;
-        angleGain = 1.0 - ((absAngle - 45) / 90) * 0.75;
-        decayDuration = 0.20;
+        // [측면 영역 (45° ~ 135°)] 부드러운 단일 미니 스냅 톤 "뾱-" (900Hz, 볼륨 40% 감쇄)
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        const angleGain = 1.0 - ((absAngle - 45) / 90) * 0.6;
+        const maxGain = Math.max(0.01, 0.3 * angleGain);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(900, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(maxGain, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.16);
       } else {
-        // [후방/뒤쪽 영역 (135° ~ 180°)] 1옥타브 낮고 묵직하며 먹먹한 저음 C5 (523.25Hz) "뚱..." (볼륨 10% 감쇄)
-        freq = 523.25;
-        angleGain = 0.1; // 10% 약한 볼륨
-        decayDuration = 0.15; // 둔탁하고 짧은 잔향
+        // [후방/뒤쪽 영역 (135° ~ 180°)] 묵직하게 내려가는 어두운 하향 저음 톤 "뾴..." (600Hz ➔ 450Hz, 볼륨 10% 감쇄)
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.19);
       }
-
-      // 기본 피크 볼륨 (0.4)에 방향 계수 적용
-      const maxPeakGain = Math.max(0.01, 0.4 * angleGain);
-
-      // StereoPannerNode 지원 여부 확인 후 적용
-      let pannerNode = null;
-      if (this.audioCtx.createStereoPanner) {
-        pannerNode = this.audioCtx.createStereoPanner();
-        pannerNode.pan.setValueAtTime(panValue, now);
-      }
-
-      // 음정 설정 (정면: C6 1046Hz ➔ 후방: C5 523Hz)
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now);
-
-      // 엔벨로프 (조준 각도에 따른 최고 피크 볼륨 적용, 잔향 decayDuration)
-      gainNode.gain.setValueAtTime(0.001, now);
-      gainNode.gain.exponentialRampToValueAtTime(maxPeakGain, now + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + decayDuration);
-
-      // 노드 연결
-      if (pannerNode) {
-        osc.connect(gainNode);
-        gainNode.connect(pannerNode);
-        pannerNode.connect(this.audioCtx.destination);
-      } else {
-        osc.connect(gainNode);
-        gainNode.connect(this.audioCtx.destination);
-      }
-
-      osc.start(now);
-      osc.stop(now + decayDuration + 0.01);
     } catch (e) {
       console.error("Beacon sound play error:", e);
     }
