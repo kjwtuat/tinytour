@@ -171,7 +171,7 @@ class SpatialAudioGuide {
     }, delayMs);
   }
 
-  // 맑은 아날로그 핑/종소리 합성 (스마트폰 스피커 전용: High-Visibility Dual-Tone Chime)
+  // 초경쾌 유리 벨/글록켄슈필 합성음 (스마트폰 스피커 전용: Glass Bell Trill & Gain Scaling)
   playBeaconSound() {
     if (!this.audioCtx) return;
 
@@ -180,59 +180,53 @@ class SpatialAudioGuide {
       const absAngle = Math.abs(this.currentRelativeAngle);
 
       if (absAngle <= 45) {
-        // [정면 조준 영역 (0° ~ 45°)] 화사하고 경쾌하게 솟구치는 투톤 차임 "뾰롱-!" (1200Hz ➔ 1600Hz, 볼륨 100%)
-        const osc1 = this.audioCtx.createOscillator();
-        const osc2 = this.audioCtx.createOscillator();
-        const gain1 = this.audioCtx.createGain();
-        const gain2 = this.audioCtx.createGain();
+        // [정면 조준 영역 (0° ~ 45°)] 맑고 청량하게 튕기는 3음 아르페지오 유리 벨 "또로롱-! 🎶" (1800Hz ➔ 2400Hz ➔ 2700Hz, triangle)
+        const freqs = [1800, 2400, 2700];
+        freqs.forEach((freq, idx) => {
+          const osc = this.audioCtx.createOscillator();
+          const gain = this.audioCtx.createGain();
+          const startTime = now + idx * 0.045;
 
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(1200, now);
-        gain1.gain.setValueAtTime(0.001, now);
-        gain1.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
-        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+          osc.type = 'triangle'; // 하모닉스가 맑고 화사한 삼각파
+          osc.frequency.setValueAtTime(freq, startTime);
 
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1600, now + 0.06);
-        gain2.gain.setValueAtTime(0.001, now + 0.06);
-        gain2.gain.exponentialRampToValueAtTime(0.4, now + 0.07);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+          gain.gain.setValueAtTime(0.001, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.4, startTime + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.16);
 
-        osc1.connect(gain1);
-        gain1.connect(this.audioCtx.destination);
-        osc2.connect(gain2);
-        gain2.connect(this.audioCtx.destination);
+          osc.connect(gain);
+          gain.connect(this.audioCtx.destination);
 
-        osc1.start(now);
-        osc1.stop(now + 0.13);
-        osc2.start(now + 0.06);
-        osc2.stop(now + 0.23);
+          osc.start(startTime);
+          osc.stop(startTime + 0.17);
+        });
       } else if (absAngle <= 135) {
-        // [측면 영역 (45° ~ 135°)] 부드러운 단일 미니 스냅 톤 "뾱-" (900Hz, 볼륨 40% 감쇄)
+        // [측면 영역 (45° ~ 135°)] 청량한 미니 톡- 톤 (1500Hz, triangle, 볼륨 35% 감쇄)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
-        const angleGain = 1.0 - ((absAngle - 45) / 90) * 0.6;
-        const maxGain = Math.max(0.01, 0.3 * angleGain);
+        const angleGain = 1.0 - ((absAngle - 45) / 90) * 0.65;
+        const maxGain = Math.max(0.01, 0.35 * angleGain);
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(900, now);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1500, now);
+
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(maxGain, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+        gain.gain.exponentialRampToValueAtTime(maxGain, now + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
 
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
 
         osc.start(now);
-        osc.stop(now + 0.16);
+        osc.stop(now + 0.13);
       } else {
-        // [후방/뒤쪽 영역 (135° ~ 180°)] 묵직하게 내려가는 어두운 하향 저음 톤 "뾴..." (600Hz ➔ 450Hz, 볼륨 10% 감쇄)
+        // [후방/뒤쪽 영역 (135° ~ 180°)] 어두운 하향 저음 톤 "뾴..." (500Hz ➔ 350Hz, 볼륨 10% 감쇄)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.15);
 
         gain.gain.setValueAtTime(0.001, now);
         gain.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
@@ -395,6 +389,20 @@ function handleOrientation(event) {
     // 저주파 필터로 나침반 떨림 보정 (Low-pass Filter)
     const diff = (heading - currentHeading + 540) % 360 - 180;
     currentHeading = (currentHeading + diff * 0.2 + 360) % 360;
+    
+    // 지도 위 내 위치 마커 방위각 시야각(Heading Cone) 및 화살표 실시간 회전
+    updateMarkerHeading();
+  }
+}
+
+function updateMarkerHeading() {
+  const coneEl = document.querySelector('.heading-cone');
+  const arrowEl = document.querySelector('.heading-arrow');
+  if (coneEl) {
+    coneEl.style.transform = `rotate(${currentHeading}deg)`;
+  }
+  if (arrowEl) {
+    arrowEl.style.transform = `translateX(-50%) rotate(${currentHeading}deg)`;
   }
 }
 
@@ -448,12 +456,12 @@ function updateMapLocation(lat, lon, accuracy) {
 
     L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(leafletMap);
 
-    // 커스텀 펄스 파란색 위치 마커 아이콘 생성
+    // 커스텀 펄스 파란색 위치 마커 & 지자기 방위각 시야각(Heading Cone) 아이콘 생성
     const customIcon = L.divIcon({
       className: 'user-location-marker',
-      html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
+      html: '<div class="heading-cone"></div><div class="marker-pin"><div class="heading-arrow"></div></div><div class="marker-pulse"></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
     });
 
     userMarker = L.marker([lat, lon], { icon: customIcon }).addTo(leafletMap);
@@ -473,6 +481,7 @@ function updateMapLocation(lat, lon, accuracy) {
       accuracyCircle.setRadius(accuracy);
     }
   }
+  updateMarkerHeading();
 }
 
 function fetchLocation() {

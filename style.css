@@ -319,37 +319,37 @@ body {
 }
 
 .nearby-info h3 {
-  color: #10b981;
-  margin-bottom: 0.2rem;
-  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
-.nearby-info p {
+#save-key-btn:hover {
+  background: var(--accent-hover);
+}
+
+
+#transcript-text {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  width: 100%;
+  font-weight: 400;
+}
+
+.placeholder {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 
-@keyframes fadein {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.interim-text {
+  color: #94a3b8;
+  opacity: 0.7;
 }
 
-/* Leaflet 커스텀 마커 스타일 */
-.user-location-marker {
+.mic-button {
   position: relative;
-  width: 20px;
-  height: 20px;
-}
-
-.marker-pin {
-  width: 14px;
-  height: 14px;
-  background: #3b82f6;
-  border: 2.5px solid #ffffff;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  position: absolute;
-  top: 3px;
   border: none;
   background: var(--accent-color);
   color: white;
@@ -530,36 +530,66 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Leaflet 커스텀 마커 스타일 */
+/* Leaflet 커스텀 마커 & 방위각 시야각 스타일 */
 .user-location-marker {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 스마트폰 전방 부채꼴 시야각 (Heading Cone) */
+.heading-cone {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin-left: -25px;
+  background: conic-gradient(from 150deg at 50% 100%, rgba(59, 130, 246, 0.55) 0deg, rgba(59, 130, 246, 0) 60deg);
+  border-radius: 50% 50% 0 0;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  transition: transform 0.15s ease-out;
+  z-index: 1;
+}
+
+/* 현재 위치 중심 점 */
 .marker-pin {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background: #3b82f6;
   border: 2.5px solid #ffffff;
   border-radius: 50%;
   position: absolute;
-  top: 3px;
-  left: 3px;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
-  z-index: 2;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
+  z-index: 3;
+}
+
+/* 방위각 방향 화살표 (Pointer Arrow) */
+.heading-arrow {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 7px solid #ffffff;
+  z-index: 4;
 }
 
 .marker-pulse {
-  width: 28px;
-  height: 28px;
-  background: rgba(59, 130, 246, 0.4);
+  width: 32px;
+  height: 32px;
+  background: rgba(59, 130, 246, 0.35);
   border-radius: 50%;
   position: absolute;
-  top: -4px;
-  left: -4px;
   animation: marker-pulse-anim 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-  z-index: 1;
+  z-index: 2;
 }
 
 @keyframes marker-pulse-anim {
