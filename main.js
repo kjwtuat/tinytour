@@ -180,7 +180,7 @@ class SpatialAudioGuide {
       const absAngle = Math.abs(this.currentRelativeAngle);
 
       if (absAngle <= 30) {
-        // [정면 구역 (0° ~ 30°)] 제미나이 대기음 (1200Hz ➔ 1500Hz, 볼륨 50%)
+        // [정면 구역 (0° ~ 30°)] 제미나이 대기음 (1200Hz ➔ 1500Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
@@ -188,7 +188,7 @@ class SpatialAudioGuide {
         osc.frequency.exponentialRampToValueAtTime(1500, now + 0.1);
         
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.5, now + 0.01);
+        gain.gain.linearRampToValueAtTime(1.0, now + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
         
         osc.connect(gain);
@@ -196,7 +196,7 @@ class SpatialAudioGuide {
         osc.start(now);
         osc.stop(now + 0.2);
       } else if (absAngle < 90) {
-        // [측면 구역 (30° ~ 90°)] 마이크 활성화음 (600Hz ➔ 1200Hz, 볼륨 50%)
+        // [측면 구역 (30° ~ 90°)] 마이크 활성화음 (600Hz ➔ 1200Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
@@ -204,7 +204,7 @@ class SpatialAudioGuide {
         osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
         
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.5, now + 0.02);
+        gain.gain.linearRampToValueAtTime(1.0, now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
         
         osc.connect(gain);
@@ -212,7 +212,7 @@ class SpatialAudioGuide {
         osc.start(now);
         osc.stop(now + 0.2);
       } else {
-        // [후방 구역 (90° ~ 180°)] 마이크 비활성화음 (1200Hz ➔ 600Hz, 볼륨 50%)
+        // [후방 구역 (90° ~ 180°)] 마이크 비활성화음 (1200Hz ➔ 600Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
@@ -220,7 +220,7 @@ class SpatialAudioGuide {
         osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
         
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.5, now + 0.02);
+        gain.gain.linearRampToValueAtTime(1.0, now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
         
         osc.connect(gain);
