@@ -179,8 +179,8 @@ class SpatialAudioGuide {
       const now = this.audioCtx.currentTime;
       const absAngle = Math.abs(this.currentRelativeAngle);
 
-      if (absAngle <= 30) {
-        // [정면 구역 (0° ~ 30°)] 제미나이 대기음 (1200Hz ➔ 1500Hz, 볼륨 100%)
+      if (absAngle <= 20) {
+        // [정면 구역 (0° ~ 20°)] 제미나이 대기음 (1200Hz ➔ 1500Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
@@ -195,8 +195,8 @@ class SpatialAudioGuide {
         gain.connect(this.audioCtx.destination);
         osc.start(now);
         osc.stop(now + 0.2);
-      } else if (absAngle < 90) {
-        // [측면 구역 (30° ~ 90°)] 마이크 활성화음 (600Hz ➔ 1200Hz, 볼륨 100%)
+      } else if (absAngle < 50) {
+        // [측면 구역 (20° ~ 50°)] 마이크 활성화음 (600Hz ➔ 1200Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
@@ -212,7 +212,7 @@ class SpatialAudioGuide {
         osc.start(now);
         osc.stop(now + 0.2);
       } else {
-        // [후방 구역 (90° ~ 180°)] 마이크 비활성화음 (1200Hz ➔ 600Hz, 볼륨 100%)
+        // [후방 구역 (50° ~ 180°)] 마이크 비활성화음 (1200Hz ➔ 600Hz, 볼륨 100%)
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sine';
