@@ -11,10 +11,12 @@
      - 3순위 (Fallback): 정지 시 $Q=0.1$, 보행 시 $Q=0.8$, 차량 시 $Q=2.0$, 예외 발생 시 안전 기본값 $Q=0.8$ 적용.
    - **모바일 실시간 디버깅 UI**: 상단 GPS 박스에 보정 좌표, 원본 좌표(Raw), 수신 오차 범위(Accuracy)를 2줄로 직관적 표기.
 
-2. **Web Audio API 3D 공간 음향 보행 내비게이션 (Spatial Audio Navigation)**
+2. **Web Audio API 3D 하이브리드 공간 음향 보행 내비게이션 (Spatial Audio Navigation)**
    - **오픈형 이어폰 사용 안내**: 외부 소리 인식을 위해 외부 노출형(오픈형/골도) 이어폰 사용 권고 안내 멘트 적용.
-   - **3D 공간 음향(Spatial Audio Beacon)**: 별도 음원 파일 없이 Web Audio API 기반 맑은 C6 아날로그 핑/종소리(Soft Bell) 합성음 생성.
-   - **지자기 센서(`DeviceOrientation`) & 방위각 연산**: 스마트폰 나침반 각도(Heading) 및 GPS `getBearing()` 각도 연산으로 타겟 방향 Panning(`pan = -1.0 ~ +1.0`) 및 저주파 필터(Low-pass filter) 떨림 보정 적용.
+   - **하이브리드 오디오 조준경 엔진 (Hybrid Audio Compass)**:
+     - **3D Stereo Panning (이어폰 3D 입체감)**: 목적지 상대 방위각($\theta$)을 기반으로 좌/우 음상 위치(`pan = -1.0 ~ +1.0`) 실시간 제어.
+     - **지향성 각도 볼륨 스케일링 (스피커 오디오 조준경)**: 정면 조준($\pm 15^\circ$) 시 볼륨 100%, 각도가 벗어날수록 볼륨을 0.15~0.1로 대폭 감쇄 ➔ 스마트폰 스피커만으로도 폰을 비출 때 목적지 정면을 맞추면 소리가 확 커지는 '조준경 효과' 체감!
+   - **지자기 센서(`DeviceOrientation`) & 방위각 연산**: 스마트폰 나침반 각도(Heading) 및 GPS `getBearing()` 각도 연산으로 타겟 방향 Panning 및 저주파 필터(Low-pass filter) 떨림 보정 적용.
    - **거리 기반 펄스 주기(BPM) 조절**: 30m 이상(2.0초 간격) ➔ 10~30m(1.2초 간격) ➔ 3~10m(0.6초 간격) ➔ 3m 이내 도착 차임벨 재생 및 자동 종료.
 
 3. **`tourData.js` 장소 검색 및 0.1초 즉시 음성(TTS) 응답**
