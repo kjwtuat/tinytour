@@ -406,6 +406,55 @@ function getJosa(word, josa1, josa2) {
   return word + (hasJongseong ? josa1 : josa2);
 }
 
+// Leaflet.js 지도 연동 및 칼만 필터 중심 좌표 반영
+let leafletMap = null;
+let userMarker = null;
+let accuracyCircle = null;
+
+function updateMapLocation(lat, lon, accuracy) {
+  if (typeof L === 'undefined') return;
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) return;
+
+  if (!leafletMap) {
+    // 지도 객체 초기화 (Dark Mode CartoDB Tile)
+    leafletMap = L.map('map', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([lat, lon], 18);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(leafletMap);
+
+    // 커스텀 펄스 파란색 위치 마커 아이콘 생성
+    const customIcon = L.divIcon({
+      className: 'user-location-marker',
+      html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+
+    userMarker = L.marker([lat, lon], { icon: customIcon }).addTo(leafletMap);
+    accuracyCircle = L.circle([lat, lon], {
+      radius: accuracy,
+      color: '#3b82f6',
+      fillColor: '#3b82f6',
+      fillOpacity: 0.15,
+      weight: 1
+    }).addTo(leafletMap);
+  } else {
+    // 칼만 필터를 거친 보정 좌표를 지도의 화면 정가운데로 이동 및 마커/원 갱신
+    leafletMap.panTo([lat, lon], { animate: true, duration: 0.5 });
+    if (userMarker) userMarker.setLatLng([lat, lon]);
+    if (accuracyCircle) {
+      accuracyCircle.setLatLng([lat, lon]);
+      accuracyCircle.setRadius(accuracy);
+    }
+  }
+}
+
 function fetchLocation() {
   navigator.geolocation.getCurrentPosition(
     (position) => {
@@ -419,6 +468,9 @@ function fetchLocation() {
       const filtered = gpsFilter.process(rawLat, rawLon, accuracy, timestamp, hwSpeed);
       const currentLat = filtered.lat;
       const currentLon = filtered.lon;
+
+      // 지도의 화면 중심을 칼만 필터 최종 보정 좌표로 부드럽게 이동
+      updateMapLocation(currentLat, currentLon, accuracy);
 
       // 3D 공간 음향 내비게이션 활성화 시 위치 및 방위각 실시간 갱신
       if (spatialGuide.isActive) {

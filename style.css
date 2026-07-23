@@ -26,7 +26,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 2rem;
+  padding-top: 1rem;
   padding-bottom: 4rem; /* 모바일 하단 여백 확보 */
   overflow-x: hidden;
   overflow-y: auto;
@@ -35,7 +35,7 @@ body {
 #app {
   width: 100%;
   max-width: 600px;
-  padding: 2rem;
+  padding: 1rem 2rem 2rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
@@ -47,18 +47,13 @@ body {
 }
 
 .header h1 {
-  font-size: 2.8rem;
+  font-size: 1.4rem;
   font-weight: 600;
   background: linear-gradient(135deg, #60a5fa, #a78bfa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   letter-spacing: -0.02em;
-}
-
-.header p {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
 }
 
 .container {
@@ -110,6 +105,7 @@ body {
   padding: 0.5rem;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
+  margin-top: 1.5rem;
 }
 
 #api-key-input {
@@ -183,6 +179,21 @@ body {
   transition: fill 0.3s ease;
 }
 
+.mic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.mic-guide-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 0.85;
+  letter-spacing: -0.01em;
+}
+
 /* Listening State */
 .mic-button.listening {
   background: var(--mic-active);
@@ -236,22 +247,46 @@ body {
   }
 }
 
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 250px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  margin-top: -1.0rem;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  background: #0f172a;
+  z-index: 1;
+}
+
 .gps-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  width: 100%;
-  max-width: 400px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  padding: 0.8rem;
+  gap: 0.2rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.6rem 0.8rem;
   border-radius: 12px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   justify-content: center;
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-top: -1.5rem;
+  font-size: 0.82rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
 }
 
 .gps-info-main {
@@ -261,7 +296,7 @@ body {
 
 .gps-info-sub {
   font-size: 0.75rem;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .nearby-container {
@@ -298,4 +333,47 @@ body {
 @keyframes fadein {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Leaflet 커스텀 마커 스타일 */
+.user-location-marker {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.marker-pin {
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+  z-index: 2;
+}
+
+.marker-pulse {
+  width: 28px;
+  height: 28px;
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  animation: marker-pulse-anim 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: 1;
+}
+
+@keyframes marker-pulse-anim {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
 }

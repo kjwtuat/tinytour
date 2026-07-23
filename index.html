@@ -9,22 +9,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Leaflet.js CSS & JS for Dark Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
   <body>
     <div id="app">
       <div class="header">
         <h1>모두의 투어</h1>
-        <p>음성으로 질문해 보세요!</p>
       </div>
 
-      <div class="api-key-container">
-        <input type="password" id="api-key-input" placeholder="Gemini API Key를 입력하세요..." />
-        <button id="save-key-btn">저장</button>
-      </div>
-      <div id="gps-container" class="gps-container">
-        <div class="gps-info-main">📍 보정: <span id="gps-lat">가져오는 중...</span> / <span id="gps-lon">가져오는 중...</span></div>
-        <div class="gps-info-sub">
-          (원본: <span id="gps-raw-lat">-</span>, <span id="gps-raw-lon">-</span> | 오차: ±<span id="gps-acc">-</span>m)
+      <div id="map-wrapper" class="map-wrapper">
+        <div id="map"></div>
+        <div id="gps-container" class="gps-container">
+          <div class="gps-info-main">📍 보정: <span id="gps-lat">가져오는 중...</span> / <span id="gps-lon">가져오는 중...</span></div>
+          <div class="gps-info-sub">
+            (원본: <span id="gps-raw-lat">-</span>, <span id="gps-raw-lon">-</span> | 오차: ±<span id="gps-acc">-</span>m)
+          </div>
         </div>
       </div>
       
@@ -45,12 +46,20 @@
           <p id="response-text"></p>
         </div>
 
-        <button id="mic-btn" class="mic-button" aria-label="Microphone">
-          <svg viewBox="0 0 24 24" fill="currentColor" class="mic-icon">
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-          </svg>
-          <div class="pulse-ring"></div>
-        </button>
+        <div class="mic-container">
+          <button id="mic-btn" class="mic-button" aria-label="Microphone">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="mic-icon">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <div class="pulse-ring"></div>
+          </button>
+          <p class="mic-guide-text">탭하여 음성으로 질문하세요</p>
+        </div>
+      </div>
+
+      <div class="api-key-container">
+        <input type="password" id="api-key-input" placeholder="Gemini API Key를 입력하세요..." />
+        <button id="save-key-btn">저장</button>
       </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
