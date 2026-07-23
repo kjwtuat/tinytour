@@ -374,21 +374,63 @@ let gpsInterval = null;
 let lastAnnouncedSpotName = null; // TTS 중복 재생 방지용
 let currentHeading = 0; // 스마트폰 정면 나침반 방위각 (0 ~ 360도)
 
+// 3D 공간 방위각 계산 함수 (alpha, beta, gamma 기반)
+function getCompassHeading(alpha, beta, gamma) {
+  // Convert degrees to radians
+  const alphaRad = alpha * (Math.PI / 180);
+  const betaRad = beta * (Math.PI / 180);
+  const gammaRad = gamma * (Math.PI / 180);
+
+  // Calculate equation components
+  const cA = Math.cos(alphaRad);
+  const sA = Math.sin(alphaRad);
+  const cB = Math.cos(betaRad);
+  const sB = Math.sin(betaRad);
+  const cG = Math.cos(gammaRad);
+  const sG = Math.sin(gammaRad);
+
+  // Calculate A, B, C rotation components
+  const rA = - cA * sG - sA * sB * cG;
+  const rB = - sA * sG + cA * sB * cG;
+  const rC = - cB * cG;
+
+  // Calculate compass heading
+  let compassHeading = Math.atan(rA / rB);
+
+  // Convert from half unit circle to whole unit circle
+  if (rB < 0) {
+    compassHeading += Math.PI;
+  } else if (rA < 0) {
+    compassHeading += 2 * Math.PI;
+  }
+
+  // Convert radians to degrees
+  compassHeading *= 180 / Math.PI;
+
+  return compassHeading;
+}
+
 // 지자기 센서(DeviceOrientation) 수신 및 저주파 필터링(Smoothing)
 function handleOrientation(event) {
   let heading = null;
   if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
     // iOS Safari
     heading = event.webkitCompassHeading;
+  } else if (event.alpha !== null && event.alpha !== undefined && event.beta !== null && event.gamma !== null) {
+    // Android / Standard (3D Compass Heading)
+    heading = getCompassHeading(event.alpha, event.beta, event.gamma);
+    
+    // 화면 방향(가로/세로 모드)에 따른 각도 보정
+    let screenOrientation = window.screen && window.screen.orientation ? window.screen.orientation.angle : window.orientation;
+    if (screenOrientation === undefined) screenOrientation = 0;
+    
+    heading = (heading + screenOrientation + 360) % 360;
   } else if (event.alpha !== null && event.alpha !== undefined) {
-    // Android / Standard
+    // 2D Fallback
     heading = (360 - event.alpha) % 360;
   }
 
   if (heading !== null) {
-    // 스마트폰 뒷면 카메라(사용자 정면) 방향을 기준으로 일치시키기 위한 180도 위상 보정
-    heading = (heading + 180) % 360;
-
     // 저주파 필터로 나침반 떨림 보정 (Low-pass Filter)
     const diff = (heading - currentHeading + 540) % 360 - 180;
     currentHeading = (currentHeading + diff * 0.2 + 360) % 360;
