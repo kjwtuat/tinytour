@@ -417,16 +417,31 @@ function updateMapLocation(lat, lon, accuracy) {
   if (!mapContainer) return;
 
   if (!leafletMap) {
-    // 지도 객체 초기화 (Dark Mode CartoDB Tile)
-    leafletMap = L.map('map', {
-      zoomControl: false,
-      attributionControl: false
-    }).setView([lat, lon], 18);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // 1. 밝고 또렷한 일반 지도 타일 (CartoDB Voyager)
+    const streetTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       subdomains: 'abcd'
-    }).addTo(leafletMap);
+    });
+
+    // 2. 고해상도 위성 사진 타일 (Esri World Imagery)
+    const satelliteTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19
+    });
+
+    // 지도 객체 초기화 (기본 타일: 일반 지도)
+    leafletMap = L.map('map', {
+      zoomControl: false,
+      attributionControl: false,
+      layers: [streetTile]
+    }).setView([lat, lon], 18);
+
+    // 지도 우측 하단에 [🗺️ 일반 지도 / 🛰️ 위성 지도] 레이어 전환 버튼 추가
+    const baseMaps = {
+      "🗺️ 일반": streetTile,
+      "🛰️ 위성": satelliteTile
+    };
+
+    L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(leafletMap);
 
     // 커스텀 펄스 파란색 위치 마커 아이콘 생성
     const customIcon = L.divIcon({
